@@ -1,6 +1,7 @@
 var express = require('express');
 const fetch = require('node-fetch');
 var router = express.Router();
+const debug = require('debug')('index')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -14,17 +15,14 @@ function uuid() {
   });
 }
 
-function createTask(taskTitle, taskTime, token = "00aee294bc9798d251cbbbe9d0f245451794aca6") {
-  commands = [{"type": "item_add", "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" } }, "uuid":uuid(), "temp_id":uuid()}];
+function callAPI(body = {}, token = "00aee294bc9798d251cbbbe9d0f245451794aca6") {
+  body.token = token;
   return fetch("https://todoist.com/api/v8/sync", {
       method: "POST",
       headers: {
           "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-          commands: commands,
-          token: token
-      })
+      body: JSON.stringify(body)
   }).then(response=> {
       if (response.ok)
           return response.json()
@@ -37,12 +35,44 @@ function createTask(taskTitle, taskTime, token = "00aee294bc9798d251cbbbe9d0f245
   });
 }
 
+function createTask(taskTitle, taskTime, projectId) {
+  commands = [{"type": "item_add", "project_id": projectId, "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" } }, "uuid":uuid(), "temp_id":uuid()}];
+  debug(commands)
+  return callAPI({commands})
+}
 
-router.post('/createTask', (req, res, next)=> {
-  createTask(req.body.taskTitle, req.body.taskTime, req.body.token).then(result=>{
+function getProjects() {
+  return callAPI({resource_types: ["projects"]})
+}
+
+function getProjectId(projectName = "Personal") {
+  return getProjects().then(result=>{
+    let projectId = null;
+    result.projects.forEach(project=>{
+      if (project.name.toLowerCase() == projectName.toLowerCase()) {
+        projectId = project.id;
+        return false;
+      }
+    });
+    return projectId;
+  });
+}
+
+router.put('/task', (req, res, next)=> {
+  getProjectId(req.body.projectName)
+  .then(projectId=>{
+    debug(projectId)
+    return createTask(req.body.taskTitle, req.body.taskTime, projectId);
+  }).then(result=>{
     res.json(result);
   }).catch(error=>{
     res.status(500).json(error);
   });
+});
+
+router.delete('/task', (req, res, next)=> {
+  getProjectId().then(projectId=>{
+
+  })
 });
 module.exports = router;
