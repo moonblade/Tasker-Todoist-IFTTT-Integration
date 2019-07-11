@@ -36,13 +36,17 @@ function callAPI(body = {}, token = "00aee294bc9798d251cbbbe9d0f245451794aca6") 
 }
 
 function createTask(taskTitle, taskTime, projectId) {
-  commands = [{"type": "item_add", "project_id": projectId, "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" } }, "uuid":uuid(), "temp_id":uuid()}];
+  commands = [{"type": "item_add", "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" }, "project_id": projectId }, "uuid":uuid(), "temp_id":uuid()}];
   debug(commands)
   return callAPI({commands})
 }
 
 function getProjects() {
   return callAPI({resource_types: ["projects"]})
+}
+
+function getItems() {
+  return callAPI({resource_types: ["items"]})
 }
 
 function getProjectId(projectName = "Personal") {
@@ -71,8 +75,12 @@ router.put('/task', (req, res, next)=> {
 });
 
 router.delete('/task', (req, res, next)=> {
-  getProjectId().then(projectId=>{
-
+  let projecId = null;
+  getProjectId(req.body.projectName).then(mProjectId=>{
+    projecId = mProjecId;
+    return getItems();
+  }).then(result=>{
+    result.items.forEach()
   })
 });
 module.exports = router;
