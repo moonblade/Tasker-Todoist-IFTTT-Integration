@@ -62,6 +62,18 @@ function getProjectId(projectName = "Personal") {
   });
 }
 
+/**
+ * @api {put} /task add new task
+ * @apiDescription add new task to the project given in body
+ * @apiGroup task
+ * 
+ * @apiParam {string} tastTitle title of the task to add
+ * @apiParam {string} taskTime human readable due date for the task
+ * @apiParam {string} projectName project under which task is to be added, default - Personal
+ * 
+ * @apiSuccess {object} created task details
+ * @apiVersion 1.0.0
+ */
 router.put('/task', (req, res, next)=> {
   getProjectId(req.body.projectName)
   .then(projectId=>{
@@ -74,6 +86,16 @@ router.put('/task', (req, res, next)=> {
   });
 });
 
+/**
+ * @api {delete} /task delete task
+ * @apiDescription delete tasks that are overdue, ie due date is earlier than yesterday
+ * @apiGroup task
+ * 
+ * @apiParam {string} projectName project under which task is to be added, default - Personal
+ * 
+ * @apiSuccess {object} delete task details
+ * @apiVersion 1.0.0
+ */
 router.delete('/task', (req, res, next)=> {
   let projecId = null;
   getProjectId(req.body.projectName).then(mProjectId=>{
