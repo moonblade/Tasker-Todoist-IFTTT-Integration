@@ -97,12 +97,30 @@ router.put('/task', (req, res, next)=> {
  * @apiVersion 1.0.0
  */
 router.delete('/task', (req, res, next)=> {
-  let projecId = null;
+  let projectId = null;
   getProjectId(req.body.projectName).then(mProjectId=>{
-    projecId = mProjecId;
+    projectId = mProjectId;
     return getItems();
   }).then(result=>{
-    result.items.forEach()
+    let toDelete = []
+    result.items.forEach(item=>{
+      var date = new Date();
+      date.setDate(date.getDate() - 1);
+      if (item.project_id == projectId && item.due && !item.due.is_recurring && (new Date(item.due.date))<date) {
+        toDelete.push(item.id)
+      }
+    });
+    return toDelete;
+  }).then(toDelete=>{
+    return toDelete.map(id=>{
+      return {"type": "item_delete", "uuid": uuid(), "args": {"id": id}}
+    });
+  }).then(req=>{
+    return callAPI({commands:req});
+  }).then(result=>{
+    res.json(result);
+  }).catch(error=>{
+    res.status(500).json(error);
   })
 });
 module.exports = router;
