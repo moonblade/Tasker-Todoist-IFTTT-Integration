@@ -2,6 +2,7 @@ var express = require('express');
 const fetch = require('node-fetch');
 var router = express.Router();
 const debug = require('debug')('index')
+const util = require('../helpers/util')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
