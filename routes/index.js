@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 var router = express.Router();
 const debug = require('debug')('index')
 const util = require('../helpers/util')
+const _ = require('lodash');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -36,8 +37,12 @@ function callAPI(body = {}, token = "00aee294bc9798d251cbbbe9d0f245451794aca6") 
   });
 }
 
+function getCreateTaskCommand(taskTitle, taskTime, projectId) {
+  return {"type": "item_add", "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" }, "project_id": projectId }, "uuid":uuid(), "temp_id":uuid()}
+}
+
 function createTask(taskTitle, taskTime, projectId) {
-  commands = [{"type": "item_add", "args": {"content": taskTitle, "due": { "string": taskTime, "lang": "en" }, "project_id": projectId }, "uuid":uuid(), "temp_id":uuid()}];
+  commands = [getCreateTaskCommand(taskTitle, taskTime, projectId)];
   debug(commands)
   return callAPI({commands})
 }
@@ -125,4 +130,31 @@ router.delete('/task', (req, res, next)=> {
   })
 });
 
+/**
+ * @api {put} /tagTask add preset task
+ * @apiDescription add tasks from tag provided in input
+ * @apiGroup task
+ * 
+ * @apiParam {string} tags Comma seperated tags to use
+ * @apiParam {string} condition OR or AND to use on the tags, default - OR
+ * 
+ * @apiSuccess {object} created task details
+ * @apiVersion 1.0.0
+ */
+router.put('/tagTask', (req, res, next)=> {
+  let tags = _.split(req.body.tags, ',')
+  let tasks = util.getTasks({
+    tags,
+    condition: req.body.condition
+  });
+  getProjectId(req.body.projectName)
+  .then(projectId=>{
+    commands = _.map(tasks, x=>getCreateTaskCommand(x.title, req.body.taskTime, projectId));
+    return callAPI({commands});
+  }).then(result=>{
+    res.json(result);
+  }).catch(error=>{
+    res.status(500).json(error);
+  });
+});
 module.exports = router;

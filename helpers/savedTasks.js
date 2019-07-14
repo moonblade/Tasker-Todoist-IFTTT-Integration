@@ -7,5 +7,4 @@ module.exports = [{
     title: "Shower",
     tags: ["morning", "getHome", "shower"]
 }, {
-
 }]

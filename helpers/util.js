@@ -15,6 +15,7 @@ util.cleanQuery = function(query) {
     query.condition = condition[query.condition] || condition.OR
     return query;
 }
+
 util.getTasks = function(query) {
     query = util.cleanQuery(query);
     let tasks = []
