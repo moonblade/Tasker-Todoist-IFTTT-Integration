@@ -1,4 +1,4 @@
-# taskerTasks
+# Tasker Todoist IFTTT Integration
 Heroku server to ping requests off of for creating todoist tasks from tasker automation for android.
 
 Currently set up so as to add a todoist task on api call (as ifttt webhook integration was not behaving correctly all the time)
